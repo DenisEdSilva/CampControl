@@ -9,7 +9,7 @@ export default function App() {
     <NavigationContainer>
       <AuthProvider>
         <Routes />  
-      </AuthProvider>:
+      </AuthProvider>
     </NavigationContainer>
   );
 }

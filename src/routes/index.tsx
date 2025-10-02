@@ -1,22 +1,30 @@
 import React from 'react';
-import { View, ActivityIndicator } from 'react-native';
+import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { useAuth } from '../contexts/AuthContext';
 
 import AuthRoutes from './auth.routes';
-import AppRoutes from './app.routes';
+import BottomTabRoutes from './bottom.routes';
 
 function Routes() {
     const { session, loading } = useAuth();
 
     if (loading) {
         return (
-            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+            <View style={styles.centered}>
                 <ActivityIndicator size="large" color="#0000ff" />
             </View>
         )
     }
 
-    return session ? <AppRoutes /> : <AuthRoutes />;
+    return session ? <BottomTabRoutes /> : <AuthRoutes />;
 }
 
 export default Routes;
+
+const styles = StyleSheet.create({
+    centered: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+});

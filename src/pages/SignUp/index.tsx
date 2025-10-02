@@ -29,7 +29,7 @@ function SignUpScreen({ navigation }: Props) {
     }
 
     const { error: profileError } = await supabase
-      .from('usuarios')
+      .from('users')
       .insert([{
         id: authData.user.id,
         name: nome,
