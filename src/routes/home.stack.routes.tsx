@@ -26,7 +26,8 @@ function HomeStackRoutes() {
                 name="Dashboard"
                 component={Dashboard}
                 options={{ 
-                    title: "Home"
+                    title: "Home",
+                    headerShown: false
                 }} 
             />
             

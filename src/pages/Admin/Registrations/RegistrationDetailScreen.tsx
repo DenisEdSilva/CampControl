@@ -72,7 +72,11 @@ export default function RegistrationDetailScreen({ route, navigation }: Props) {
                     Dia: {new Date(item.payment_date).toLocaleDateString('pt-BR')}
                 </Text>
             </View>
-            <TouchableOpacity onPress={() => navigation.navigate('EditPayment', { paymentId: item.id, registrationId: details.id })}>
+            <TouchableOpacity onPress={() => {
+                if (details) {
+                    navigation.navigate('EditPayment', { paymentId: item.id, registrationId: details.id })
+                }}
+            }>
                 <Icon name="edit-2" size={20} color="#ff1c1cff" />
             </TouchableOpacity>
         </View>
@@ -133,7 +137,12 @@ export default function RegistrationDetailScreen({ route, navigation }: Props) {
             </View>
 
             <View style={styles.section}>
+
                 <Text style={styles.sectionTitle}>Histórico de Pagamentos</Text>
+                <Button 
+                    title="Adicionar pagamento"
+                    onPress={() => navigation.navigate('AddPayment', { registrationId: details.id})}
+                />
                 {details.payments
                     .sort((a, b) => new Date(b.payment_date).getTime() - new Date(a.payment_date).getTime())
                     .map(item => renderPaymentItem({ item }))

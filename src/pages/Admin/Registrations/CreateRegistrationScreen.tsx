@@ -178,7 +178,7 @@ export default function CreateRegistrationScreen({ route, navigation }: Props) {
                 participant_tier_id: selectedTierId,
                 registration_package_id: selectedPackageId,
                 final_price: finalPrice,
-                status: 'pending',
+                status: 'Em andamento',
                 registrant_id: session?.user.id,
             }])
             .select('id')
