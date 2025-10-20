@@ -1,0 +1,35 @@
+# Expo
+.expo/
+web-build/
+dist/
+
+# Node
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Variáveis de Ambiente (MUITO IMPORTANTE PARA SEGURANÇA)
+.env
+
+# Pastas Nativas Geradas (opcional, mas recomendado para o fluxo do prebuild)
+/android
+/ios
+
+# Logs e caches
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.keystore
+*.log
+
+# IDEs e Ferramentas
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# Sistema Operacional
+.DS_Store
+Thumbs.db

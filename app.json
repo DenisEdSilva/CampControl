@@ -1,0 +1,35 @@
+{
+  "expo": {
+    "name": "CampControl",
+    "slug": "camp-control",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "platforms": [
+      "ios",
+      "android",
+      "web"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.denis.campcontrol"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.denis.campcontrol"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "aabdaca4-e2fd-4567-829c-4621a268d79f"
+      }
+    }
+  }
+}
