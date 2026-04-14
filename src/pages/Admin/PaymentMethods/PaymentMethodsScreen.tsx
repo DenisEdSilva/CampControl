@@ -6,6 +6,7 @@ import { PlusStackParamList } from '../../../routes/plus.stack.routes';
 import { supabase } from '../../../lib/supabase';
 import { useFocusEffect } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Feather';
+import { theme } from '../../../styles/theme';
 
 type Props = StackScreenProps<PlusStackParamList, 'PaymentMethodsList'>;
 
@@ -30,7 +31,7 @@ export default function PaymentMethodsScreen({ navigation }: Props) {
     } else {
       setPaymentMethods(data || []);
     }
-  }
+  };
 
   useFocusEffect(
     useCallback(() => {
@@ -87,7 +88,7 @@ export default function PaymentMethodsScreen({ navigation }: Props) {
       <Text style={styles.itemText}>{item.name}</Text>
         <View style={styles.actionsContainer}>
           <TouchableOpacity onPress={() => navigation.navigate('EditPaymentMethodScreen', { paymentMethodId: item.id })}>
-            <Icon name="edit-2" size={20} color="#007BFF" />
+            <Icon name="edit-2" size={20} color="#878175" />
           </TouchableOpacity>
           <TouchableOpacity style={{ marginLeft: 20 }} onPress={() => handleDelete(item.id, item.name)}>
             <Icon name="trash-2" size={20} color="#ff4757" />
@@ -96,31 +97,47 @@ export default function PaymentMethodsScreen({ navigation }: Props) {
     </View>
   );
 
-  return (
+ return (
     <SafeAreaView style={styles.safeArea}>
-      <View style={styles.header}>
-        <Button
-          title="Adicionar Novo Método"
-          onPress={() => navigation.navigate('CreatePaymentMethodScreen')}
-        />
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <View style={styles.headerTitleContainer}>
+            <TouchableOpacity 
+              style={styles.backButton} 
+              onPress={() => navigation.goBack()}
+            >
+              <Icon name="chevron-left" size={30} color={theme.colors.textPrimary} />
+            </TouchableOpacity>
+            
+            <Text style={styles.headerTitle}>
+              Formas de Pagamento
+            </Text>
+          </View>
+          <TouchableOpacity 
+            style={styles.buttonContainer}
+            onPress={() => navigation.navigate('CreatePaymentMethodScreen')}
+          >
+            <Text style={styles.buttonText}><Icon name="plus" size={18} /> Nova forma de pagamento</Text>
+          </TouchableOpacity>
+        </View>
+
+        {loading ? (
+          <ActivityIndicator size="large" color={theme.colors.textPrimary}/>
+        ) : (
+          <FlatList
+            data={paymentMethods}
+            renderItem={renderItem}
+            keyExtractor={item => item.id.toString()}
+            style={styles.list}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+              />
+            }
+          />
+        )}
       </View>
-      
-      {loading ? (
-        <ActivityIndicator size="large" style={{ flex: 1 }}/>
-      ) : (
-        <FlatList
-          data={paymentMethods}
-          renderItem={renderItem}
-          keyExtractor={item => item.id.toString()}
-          style={styles.list}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={onRefresh}
-            />
-          }
-        />
-      )}
     </SafeAreaView>
   );
 }
@@ -128,30 +145,63 @@ export default function PaymentMethodsScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: theme.colors.background,
+  },
+  container: {
+    flex: 1,
+    width: '80%',
+    alignSelf: 'center',
   },
   header: {
-    padding: 16,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    marginVertical: theme.spacing.lg,
   },
-  list: {
-    flex: 1,
+  headerTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: theme.spacing.md,
+  },
+  backButton: {
+    zIndex: 1, 
+  },
+  headerTitle: {
+    ...theme.typography.header,
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    textAlign: 'center',
+    paddingHorizontal: 40, 
+  },
+  buttonContainer: {
+    backgroundColor: theme.colors.textPrimary,
+    borderRadius: 10,
+    padding: 12,
+    alignItems: 'center',
+    width: '100%',
+  },
+  buttonText: {
+    color: theme.colors.textOnPrimary,
+    fontSize: 18,
+    fontWeight: 'bold',
   },
   itemContainer: {
+    ...theme.cardStyle,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-    backgroundColor: '#fff',
+    padding: theme.spacing.md,
+    marginBottom: theme.spacing.sm,
   },
   actionsContainer: {
     flexDirection: 'row', 
   },
   itemText: {
-    fontSize: 16,
+    ...theme.typography.body,
+    flex: 1,
+    marginRight: theme.spacing.sm,
+  },
+  list: {
+    flex: 1,
+    borderBottomWidth: 1,
+    borderBottomColor: '#878175'
   },
 });

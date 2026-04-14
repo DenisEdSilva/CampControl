@@ -7,6 +7,7 @@ import CreateRegistrationScreen from '../pages/Admin/Registrations/CreateRegistr
 import EditRegistrationScreen from '../pages/Admin/Registrations/EditRegistrationScreen'
 import AddPaymentScreen from '../pages/Admin/Registrations/AddPaymentScreen';
 import EditPaymentScreen from '../pages/Admin/Registrations/EditPaymentScreen';
+import ErrorBoundary from '../components/ErrorBoundary';
 
 export type HomeStackParamList = {
     Dashboard: undefined;
@@ -35,24 +36,32 @@ function HomeStackRoutes() {
                 name="CreateRegistration"
                 component={CreateRegistrationScreen}
                 options={{ 
-                    title: "Nova Inscrição" 
+                    title: "Nova Inscrição",
+                    headerShown: false 
                 }}
             />
 
             <Stack.Screen 
                 name="RegistrationDetail"
-                component={RegistrationDetailScreen}
                 options={{ 
-                    title: "Detalhes da Inscrição" 
+                    title: "Detalhes da Inscrição",
+                    headerShown: false 
                 }}
-            />
+            >
+                {(props) => (
+                    <ErrorBoundary>
+                        <RegistrationDetailScreen {...props} />
+                    </ErrorBoundary>
+                )}
+            </Stack.Screen>
 
             <Stack.Screen
                 name="EditRegistration"
                 component={EditRegistrationScreen}
                 options={{
                     title: 'Edição da inscrição',
-                    presentation: 'modal'
+                    presentation: 'modal',
+                    headerShown: false
                 }}
             />
 
@@ -61,7 +70,8 @@ function HomeStackRoutes() {
                 component={AddPaymentScreen}
                 options={{ 
                     title: "Adicionar Pagamento",
-                    presentation: 'modal' 
+                    presentation: 'modal',
+                    headerShown: false 
                 }}
             />
             <Stack.Screen
@@ -69,7 +79,8 @@ function HomeStackRoutes() {
                 component={EditPaymentScreen}
                 options={{ 
                     title: "Editar Pagamento",
-                    presentation: 'modal' 
+                    presentation: 'modal',
+                    headerShown: false 
                 }}
             />
 

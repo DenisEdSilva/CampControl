@@ -1,11 +1,12 @@
 import React, { useState, useCallback } from 'react';
-import { View, Button, FlatList, ActivityIndicator, RefreshControl, Text, Alert, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, FlatList, ActivityIndicator, RefreshControl, Text, Alert, StyleSheet, TouchableOpacity } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { StackScreenProps } from '@react-navigation/stack';
 import { PlusStackParamList } from '../../../routes/plus.stack.routes';
 import { supabase } from '../../../lib/supabase';
 import { useFocusEffect } from '@react-navigation/native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Feather';
+import { theme } from '../../../styles/theme';
 
 type Props = StackScreenProps<PlusStackParamList, 'RegistrationPackagesList'>;
 type RegistrationPackage = {
@@ -80,80 +81,140 @@ export default function RegistrationPackagesListScreen({ navigation }: Props) {
             ]
         )
     }
-
+    
     const renderItem = ({ item }: { item: RegistrationPackage }) => (
         <View style={styles.itemContainer}>
-            <Text style={styles.itemText}>{item.name}</Text>
+            <Text style={styles.itemText} numberOfLines={1}>{item.name}</Text>
             <View style={styles.actionsContainer}>
                 <TouchableOpacity onPress={() => navigation.navigate('EditRegistrationPackageScreen', { packageId: item.id })}>
-                    <Icon name="edit-2" size={20} color="#007BFF" />
+                    <Icon name="edit-2" size={20} color={theme.colors.textPrimary} />
                 </TouchableOpacity>
                 <TouchableOpacity style={{ marginLeft: 20 }} onPress={() => handleDelete(item.id, item.name)}>
-                    <Icon name="trash-2" size={20} color="#ff4757" />
+                    <Icon name="trash-2" size={20} color={theme.colors.accent} />
                 </TouchableOpacity>
             </View>
         </View>
     );
 
+    if (loading) {
+        return (
+            <SafeAreaView style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color={theme.colors.textPrimary} />
+            </SafeAreaView>
+        );
+    }
+
     return (
         <SafeAreaView style={styles.safeArea}>
-            <View style={styles.header}>
-                <Button
-                    title="Adicionar Novo Pacote"
-                    onPress={() => navigation.navigate('CreateRegistrationPackageScreen')}
-                />
-            </View>
-            
-            {loading ? (
-                <ActivityIndicator size="large" style={styles.loader}/>
-            ) : (
+            <View style={styles.container}>
+                <View style={styles.header}>
+                    <View style={styles.headerTitleContainer}>
+                        <TouchableOpacity 
+                            style={styles.backButton} 
+                            onPress={() => navigation.goBack()}
+                        >
+                            <Icon name="chevron-left" size={30} color={theme.colors.textPrimary} />
+                        </TouchableOpacity>
+                        <Text style={styles.headerTitle} numberOfLines={1}>
+                            Pacotes de Inscrições
+                        </Text>
+                    </View>
+                    <TouchableOpacity 
+                        style={styles.buttonContainer}
+                        onPress={() => navigation.navigate('CreateRegistrationPackageScreen')}
+                    >
+                        <Text style={styles.buttonText}>
+                            <Icon name="plus" size={18} /> Novo Pacote
+                        </Text>
+                    </TouchableOpacity>
+                </View>
                 <FlatList
                     data={packages}
                     renderItem={renderItem}
                     keyExtractor={item => item.id.toString()}
-                    style={styles.list}
+                    showsVerticalScrollIndicator={false}
                     refreshControl={
-                        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+                        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.colors.textPrimary}/>
+                    }
+                    ListEmptyComponent={
+                        <View style={styles.emptyContainer}>
+                            <Text style={styles.emptyText}>Nenhum pacote encontrado.</Text>
+                        </View>
                     }
                 />
-            )}
+            </View>
         </SafeAreaView>
     );
 }
 
 const styles = StyleSheet.create({
-    safeArea: { flex: 1, backgroundColor: '#f5f5f5' },
-    header: { 
-        padding: 16, 
-        backgroundColor: '#fff', 
-        borderBottomWidth: 1, 
-        borderBottomColor: '#eee' 
+    safeArea: {
+        flex: 1,
+        backgroundColor: theme.colors.background,
     },
-    list: { 
-        flex: 1 
-    },
-    loader: {
+    loadingContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
+        backgroundColor: theme.colors.background,
     },
-    itemContainer: { 
-        flexDirection: 'row', 
-        justifyContent: 'space-between', 
-        alignItems: 'center', 
-        padding: 16, 
-        borderBottomWidth: 1, 
-        borderBottomColor: '#eee', 
-        backgroundColor: '#fff' 
+    container: {
+        flex: 1,
+        width: '80%',
+        alignSelf: 'center',
+    },
+    header: {
+        marginVertical: theme.spacing.lg,
+    },
+    headerTitleContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: theme.spacing.md,
+    },
+    backButton: {
+        zIndex: 1, 
+    },
+    headerTitle: {
+        ...theme.typography.header,
+        position: 'absolute',
+        left: 0,
+        right: 0,
+        textAlign: 'center',
+        paddingHorizontal: 40, 
+    },
+    buttonContainer: {
+        backgroundColor: theme.colors.textPrimary,
+        borderRadius: 10,
+        padding: 12,
+        alignItems: 'center',
+        width: '100%',
+    },
+    buttonText: {
+        color: theme.colors.textOnPrimary,
+        fontSize: 18,
+        fontWeight: 'bold',
+    },
+    itemContainer: {
+        ...theme.cardStyle,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: theme.spacing.md,
+        marginBottom: theme.spacing.sm,
     },
     actionsContainer: {
-       flexDirection: 'row', 
+        flexDirection: 'row', 
     },
-    itemText: { 
-        fontSize: 16 
+    itemText: {
+        ...theme.typography.body,
+        flex: 1,
+        marginRight: theme.spacing.sm,
     },
-    actionText: { 
-        fontSize: 14, 
-        color: '#007BFF' 
-    }
+    emptyContainer: {
+        paddingTop: 48,
+        alignItems: 'center',
+    },
+    emptyText: {
+        ...theme.typography.body,
+    },
 });

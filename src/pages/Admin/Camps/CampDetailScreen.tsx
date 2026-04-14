@@ -1,6 +1,5 @@
-
 import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, Button, FlatList, ActivityIndicator, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity, Alert, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StackScreenProps } from '@react-navigation/stack';
 import { PlusStackParamList } from '../../../routes/plus.stack.routes';
@@ -10,6 +9,7 @@ import Icon from 'react-native-vector-icons/Feather';
 import XLSX from 'xlsx';
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
+import { theme } from '../../../styles/theme';
 
 type Props = StackScreenProps<PlusStackParamList, 'CampDetail'>;
 
@@ -24,10 +24,6 @@ export default function CampDetailScreen({ route, navigation }: Props) {
     const { campId, campName } = route.params;
     const [loading, setLoading] = useState(true);
     const [prices, setPrices] = useState<CampPrice[]>([]);
-
-    React.useLayoutEffect(() => {
-        navigation.setOptions({ title: campName });
-    }, [navigation, campName]);
 
     const fetchCampPrices = useCallback(async () => {
         const { data, error } = await supabase
@@ -53,10 +49,6 @@ export default function CampDetailScreen({ route, navigation }: Props) {
             fetchCampPrices().finally(() => setLoading(false));
         }, [fetchCampPrices])
     );
-
-    console.log(campName)
-
-    console.log("Possiveis preços: ", prices)
 
     const getNameFromArrayOrObject = (data: { name: string }[] | { name: string } | null | undefined) => {
         if (!data) return '';
@@ -91,7 +83,7 @@ export default function CampDetailScreen({ route, navigation }: Props) {
     async function handleArchiveCamp() {
         Alert.alert(
             "Confirmar Arquivamento",
-            `Tem certeza que deseja arquivar o acampamento "${campName}"? Ele não aparecerá mais nas listas principais, mas seu histórico será mantido por um tempo.`,
+            `Tem certeza que deseja arquivar o acampamento "${campName}"? Ele não aparecerá mais nas listas principais.`,
             [
                 { text: "Cancelar", style: "cancel" },
                 {
@@ -105,7 +97,6 @@ export default function CampDetailScreen({ route, navigation }: Props) {
 
                         if (error) {
                             Alert.alert("Erro", "Não foi possível arquivar o acampamento.");
-                            console.error("Erro ao arquivar:", error);
                         } else {
                             Alert.alert("Sucesso", "Acampamento arquivado.");
                             navigation.goBack();
@@ -129,15 +120,16 @@ export default function CampDetailScreen({ route, navigation }: Props) {
                     registrations!inner (
                         camp_id,
                         participants ( name ),
-                        congregations ( name )
+                        congregations ( name ),
+                        status
                     )
                 `)
-                .eq('registrations.camp_id', id);
+                .eq('registrations.camp_id', id)
 
             if (error) throw error;
 
             if (!payments || payments.length === 0) {
-                Alert.alert("Aviso", "Nenhum pagamento encontrado para este acampamento.");
+                Alert.alert("Aviso", "Nenhum pagamento de inscrições ativas foi encontrado para este acampamento.");
                 return;
             }
 
@@ -174,12 +166,13 @@ export default function CampDetailScreen({ route, navigation }: Props) {
                 "Participante": p.registrations.participants?.name ?? 'N/A',
                 "Congregação": p.registrations.congregations?.name ?? 'N/A',
                 "Recebido por": p.treasurer_id?.name ?? 'N/A',
-                "Registrado por": p.created_by_user_id?.name ?? 'N/A'
+                "Registrado por": p.created_by_user_id?.name ?? 'N/A',
+                "Status": p.registrations.status ?? 'N/A',
             }));
 
             const ws_details = XLSX.utils.json_to_sheet(detailsData);
             ws_details['!cols'] = [
-                { wch: 15 }, { wch: 15 }, { wch: 30 }, { wch: 30 }, { wch: 15 }, { wch: 30 }, { wch: 30 }
+                { wch: 15 }, { wch: 15 }, { wch: 30 }, { wch: 30 }, { wch: 15 }, { wch: 30 }, { wch: 30 }, { wch: 25 }
             ];
 
             const range_details = XLSX.utils.decode_range((ws_details as any)['!ref']);
@@ -200,8 +193,6 @@ export default function CampDetailScreen({ route, navigation }: Props) {
             
             const filePath = `${FileSystem.cacheDirectory}${fileName}`;
 
-            console.log('arquivo salvo em: ', filePath)
-
             await FileSystem.writeAsStringAsync(filePath, xlsxData, {
                 encoding: FileSystem.EncodingType.Base64
             });
@@ -221,121 +212,216 @@ export default function CampDetailScreen({ route, navigation }: Props) {
             Alert.alert('Erro', 'Não foi possível gerar o relatório de pagamentos.');
         }
     }
-
     const renderPriceItem = ({ item }: { item: CampPrice }) => (
         <View style={styles.itemContainer}>
-            <View>
-                <Text style={styles.itemText}>
+            <View style={styles.itemDetails}>
+                <Text style={styles.itemText} numberOfLines={2}>
                     {getNameFromArrayOrObject(item.participant_tiers)} - {getNameFromArrayOrObject(item.registration_packages)}
                 </Text>
-                <Text style={styles.priceText}>R$ {item.price.toFixed(2)}</Text>
+                <Text style={styles.priceText}>R$ {item.price.toFixed(2).replace('.', ',')}</Text>
             </View>
             <View style={styles.actionsContainer}>
                 <TouchableOpacity onPress={() => navigation.navigate('CreateEditCampPriceScreen', { campId, priceId: item.id })}>
-                    <Icon name="edit-2" size={20} color="#007BFF" />
+                    <Icon name="edit-2" size={20} color={theme.colors.textPrimary} />
                 </TouchableOpacity>
                 <TouchableOpacity style={{ marginLeft: 20 }} onPress={() => handleDeletePrice(item.id)}>
-                    <Icon name="trash-2" size={20} color="#ff4757" />
+                    <Icon name="trash-2" size={20} color={theme.colors.accent} />
                 </TouchableOpacity>
             </View>
         </View>
     );
 
-    return (
-        <SafeAreaView style={styles.container} >
-            <View style={styles.actionsHeader}>
-                <View>
-                    <Button 
-                        title="Editar Nome do Acampamento"
-                        onPress={() => navigation.navigate('EditCampScreen', { campId })}
-                    />
-                    <Button 
-                        title="Arquivar Acampamento"
-                        onPress={handleArchiveCamp}
-                        color="#ff4757"
-                    />
-                    <Button 
-                        title="Gerar relatório de pagamentos (.xlsx)"
-                        onPress={() => generatePaymentsReport(campId, campName)}
-                        color="#28a745"
-                    />
-                </View>
-            </View>
-            <View style={styles.header}>
-                <Text style={styles.headerTitle}>Tabela de Preços</Text>
-                <Button 
-                    title="Adicionar Novo Preço"
-                    onPress={() => navigation.navigate('CreateEditCampPriceScreen', { campId })}
-                />
-            </View>
+    if (loading) {
+        return (
+            <SafeAreaView style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color={theme.colors.textPrimary} />
+            </SafeAreaView>
+        );
+    }
 
-            {loading ? (
-                <ActivityIndicator size="large" style={{ marginTop: 50 }}/>
-            ) : (
-                <FlatList
-                    data={prices}
-                    renderItem={renderPriceItem}
-                    keyExtractor={(item) => item.id.toString()}
-                    ListEmptyComponent={<Text style={styles.emptyText}>Nenhum preço cadastrado.</Text>}
-                />
-            )}
+    return (
+        <SafeAreaView style={styles.safeArea}>
+            <View style={styles.container}>
+                <View style={styles.header}>
+                    <View style={styles.headerTitleContainer}>
+                        <TouchableOpacity 
+                            style={styles.backButton} 
+                            onPress={() => navigation.goBack()}
+                        >
+                            <Icon name="chevron-left" size={30} color={theme.colors.textPrimary} />
+                        </TouchableOpacity>
+                        <Text style={styles.headerTitle} numberOfLines={2}>
+                            {campName}
+                        </Text>
+                    </View>
+                </View>
+
+                <ScrollView showsVerticalScrollIndicator={false}>
+                    <View style={styles.section}>
+                        <Text style={styles.sectionTitle}>Ações</Text>
+                        <TouchableOpacity 
+                            style={styles.button}
+                            onPress={() => navigation.navigate('EditCampScreen', { campId })}
+                        >
+                            <Icon name="edit" size={16} color={theme.colors.textOnPrimary} style={styles.buttonIcon}/>
+                            <Text style={styles.buttonText}>Editar Nome</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity 
+                            style={[styles.button, { backgroundColor: '#28a745' }]}
+                            onPress={() => generatePaymentsReport(campId, campName)}
+                        >
+                            <Icon name="download" size={16} color={theme.colors.textOnPrimary} style={styles.buttonIcon}/>
+                            <Text style={styles.buttonText}>Relatório de Pagamentos</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity 
+                            style={[styles.button, { backgroundColor: theme.colors.accent }]}
+                            onPress={handleArchiveCamp}
+                        >
+                            <Icon name="archive" size={16} color={theme.colors.textOnPrimary} style={styles.buttonIcon}/>
+                            <Text style={styles.buttonText}>Arquivar Acampamento</Text>
+                        </TouchableOpacity>
+                    </View>
+
+                    <View style={styles.section}>
+                        <View style={styles.sectionHeader}>
+                            <Text style={styles.sectionTitle}>Tabela de Preços</Text>
+                            <TouchableOpacity 
+                                style={styles.addButton}
+                                onPress={() => navigation.navigate('CreateEditCampPriceScreen', { campId })}
+                            >
+                                <Icon name="plus" size={18} color={theme.colors.textOnPrimary}/>
+                            </TouchableOpacity>
+                        </View>
+                        {prices.length > 0 ? (
+                            prices.map(item => (
+                                // ----- A CORREÇÃO ESTÁ AQUI -----
+                                <View key={item.id} style={styles.itemContainer}>
+                                    <View style={styles.itemDetails}>
+                                        <Text style={styles.itemText} numberOfLines={2}>
+                                            {getNameFromArrayOrObject(item.participant_tiers)} - {getNameFromArrayOrObject(item.registration_packages)}
+                                        </Text>
+                                        <Text style={styles.priceText}>R$ {item.price.toFixed(2).replace('.', ',')}</Text>
+                                    </View>
+                                    <View style={styles.actionsContainer}>
+                                        <TouchableOpacity onPress={() => navigation.navigate('CreateEditCampPriceScreen', { campId, priceId: item.id })}>
+                                            <Icon name="edit-2" size={20} color={theme.colors.textPrimary} />
+                                        </TouchableOpacity>
+                                        <TouchableOpacity style={{ marginLeft: 20 }} onPress={() => handleDeletePrice(item.id)}>
+                                            <Icon name="trash-2" size={20} color={theme.colors.accent} />
+                                        </TouchableOpacity>
+                                    </View>
+                                </View>
+                                // ------------------------------------
+                            ))
+                        ) : (
+                            <Text style={styles.emptyText}>Nenhum preço cadastrado.</Text>
+                        )}
+                    </View>
+                </ScrollView>
+            </View>
         </SafeAreaView>
     );
 }
 
 const styles = StyleSheet.create({
-    container: { 
+    safeArea: { 
         flex: 1, 
-        backgroundColor: '#f5f5f5' 
+        backgroundColor: theme.colors.background 
     },
-    actionsHeader: {
-        padding: 16,
-        backgroundColor: '#fff',
-        borderBottomWidth: 1,
-        borderBottomColor: '#eee',
+    loadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: theme.colors.background,
     },
-    actionsTitle: {
-        fontSize: 16,
+    container: { 
+        flex: 1,
+        width: '80%',
+        alignSelf: 'center',
+    },
+    header: {
+        marginVertical: theme.spacing.lg,
+    },
+    headerTitleContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: theme.spacing.md,
+    },
+    backButton: {
+        zIndex: 1, 
+    },
+    headerTitle: {
+        ...theme.typography.header,
+        position: 'absolute',
+        left: 0,
+        right: 0,
+        textAlign: 'center',
+        paddingHorizontal: 40, 
+    },
+    section: {
+        ...theme.cardStyle,
+        padding: theme.spacing.md,
+        marginBottom: theme.spacing.lg,
+    },
+    sectionTitle: {
+        ...theme.typography.header,
+        fontSize: 20,
+        marginBottom: theme.spacing.md,
+    },
+    sectionHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+    },
+    button: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: theme.colors.textPrimary,
+        padding: 12,
+        borderRadius: 8,
+        marginBottom: theme.spacing.sm,
+    },
+    buttonIcon: {
+        marginRight: theme.spacing.sm,
+    },
+    buttonText: {
+        color: theme.colors.textOnPrimary,
         fontWeight: 'bold',
-        color: 'gray',
-        marginBottom: 8,
+        fontSize: 16,
     },
-    header: { 
-        padding: 16, 
-        backgroundColor: '#fff', 
-        borderBottomWidth: 1, 
-        borderBottomColor: '#eee' 
-    },
-    headerTitle: { 
-        fontSize: 20, 
-        fontWeight: 'bold', 
-        marginBottom: 12 
+    addButton: {
+        backgroundColor: theme.colors.textPrimary,
+        borderRadius: 100,
+        padding: 8,
+        marginBottom: theme.spacing.md
     },
     itemContainer: { 
         flexDirection: 'row', 
         justifyContent: 'space-between', 
         alignItems: 'center', 
-        padding: 16, 
-        borderBottomWidth: 1, 
-        borderBottomColor: '#eee', 
-        backgroundColor: '#fff' 
+        paddingVertical: theme.spacing.md, 
+        borderTopWidth: 1, 
+        borderTopColor: theme.colors.background,
+    },
+    itemDetails: {
+        flex: 1,
+        marginRight: theme.spacing.sm,
     },
     actionsContainer: {
        flexDirection: 'row', 
     },
     itemText: { 
-        fontSize: 16, 
-        fontWeight: '500' 
+        ...theme.typography.body,
+        fontWeight: '500',
     },
     priceText: { 
         fontSize: 14, 
         color: 'green', 
-        marginTop: 4 
+        marginTop: 4,
     },
     emptyText: { 
+        ...theme.typography.body,
         textAlign: 'center', 
-        marginTop: 50, 
-        fontSize: 16, 
-        color: 'gray' 
+        paddingVertical: theme.spacing.lg,
     },
 });

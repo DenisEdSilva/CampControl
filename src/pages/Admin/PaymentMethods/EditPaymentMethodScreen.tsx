@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { View, TextInput, Button, Alert, StyleSheet, ActivityIndicator, Text } from 'react-native';
+import { View, TextInput, Alert, StyleSheet, ActivityIndicator, Text, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StackScreenProps } from '@react-navigation/stack';
 import { PlusStackParamList } from '../../../routes/plus.stack.routes';
 import { supabase } from '../../../lib/supabase';
+import { theme } from '../../../styles/theme';
+import Icon from 'react-native-vector-icons/Feather';
 
 type Props = StackScreenProps<PlusStackParamList, 'EditPaymentMethodScreen'>;
 
@@ -58,67 +60,115 @@ export default function EditPaymentMethodScreen({ route, navigation }: Props) {
 
     if (loading) {
         return (
-            <View style={styles.container}>
-                <ActivityIndicator size="large" />
-                <Text>Carregando dados...</Text>
-            </View>
+            <SafeAreaView style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color={theme.colors.textPrimary} />
+            </SafeAreaView>
         );
     }
     
     return (
         <SafeAreaView style={styles.safeArea}>
-            {loading ? (
-                <View style={styles.loadingContainer}>
-                    <ActivityIndicator size="large" />
-                    <Text>Carregando dados...</Text>
+            <View style={styles.container}>
+                <View style={styles.header}>
+                    <View style={styles.headerTitleContainer}>
+                        <TouchableOpacity 
+                            style={styles.backButton} 
+                            onPress={() => navigation.goBack()}
+                        >
+                            <Icon name="chevron-left" size={30} color={theme.colors.textPrimary} />
+                        </TouchableOpacity>
+                        <Text style={styles.headerTitle} numberOfLines={1}>
+                            Editar Método
+                        </Text>
+                    </View>
                 </View>
-            ) : (
-                <View style={styles.container}>
-                    <Text style={styles.label}>Editar Nome da Forma de Pagamento</Text>
+                <View style={styles.form}>
+                    <Text style={styles.label}>Nome da Forma de Pagamento</Text>
                     <TextInput
                         style={styles.input}
                         value={name}
                         onChangeText={setName}
+                        placeholderTextColor={theme.colors.textSecondary}
                     />
-                    {saving ? (
-                        <ActivityIndicator size="large" />
-                    ) : (
-                        <Button title="Salvar Alterações" onPress={handleUpdate} />
-                    )}
+                    <TouchableOpacity 
+                        style={styles.buttonContainer} 
+                        onPress={handleUpdate} 
+                        disabled={saving}
+                    >
+                        {saving ? (
+                            <ActivityIndicator color={theme.colors.textOnPrimary} />
+                        ) : (
+                            <Text style={styles.buttonText}>Salvar Alterações</Text>
+                        )}
+                    </TouchableOpacity>
                 </View>
-            )}
+            </View>
         </SafeAreaView>
     );
 }
 
 const styles = StyleSheet.create({
-    safeArea: {
-        flex: 1,
-        backgroundColor: '#f5f5f5',
-        justifyContent: 'center',
-    },
-    container: {
-        padding: 20,
+    safeArea: { 
+        flex: 1, 
+        backgroundColor: theme.colors.background 
     },
     loadingContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
+        backgroundColor: theme.colors.background,
     },
-    label: {
-        fontSize: 16,
-        marginBottom: 8,
+    container: { 
+        flex: 1,
+        width: '80%',
+        alignSelf: 'center',
+    },
+    header: {
+        marginVertical: theme.spacing.lg,
+    },
+    headerTitleContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    backButton: {
+        zIndex: 1, 
+    },
+    headerTitle: {
+        ...theme.typography.header,
+        position: 'absolute',
+        left: 0,
+        right: 0,
+        textAlign: 'center',
+        paddingHorizontal: 40, 
+    },
+    form: {
+        flex: 1,
+    },
+    label: { 
+        ...theme.typography.body,
         fontWeight: 'bold',
-        color: '#333'
+        marginBottom: theme.spacing.sm, 
+        color: theme.colors.textPrimary,
     },
-    input: {
+    input: { 
+        ...theme.cardStyle,
+        paddingHorizontal: theme.spacing.md,
         height: 50,
-        backgroundColor: '#fff',
-        borderColor: '#ccc',
-        borderWidth: 1,
-        borderRadius: 8,
-        paddingHorizontal: 15,
-        marginBottom: 20,
         fontSize: 16,
+        color: theme.colors.textPrimary,
+        marginBottom: theme.spacing.lg,
+    },
+    buttonContainer: {
+        backgroundColor: theme.colors.textPrimary,
+        borderRadius: 10,
+        padding: 14,
+        alignItems: 'center',
+        width: '100%',
+        marginTop: theme.spacing.md,
+    },
+    buttonText: {
+        color: theme.colors.textOnPrimary,
+        fontSize: 18,
+        fontWeight: 'bold',
     },
 });

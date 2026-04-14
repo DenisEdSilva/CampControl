@@ -6,14 +6,15 @@ import {
     FlatList, 
     ActivityIndicator, 
     TouchableOpacity, 
-    Alert 
+    Alert
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { StackScreenProps } from '@react-navigation/stack';
 import { useFocusEffect } from '@react-navigation/native';
 import { PlusStackParamList } from '../../../routes/plus.stack.routes';
 import { supabase } from '../../../lib/supabase';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Feather';
+import { theme } from '../../../styles/theme';
 
 type Props = StackScreenProps<PlusStackParamList, 'ArchivedCamps'>;
 
@@ -22,37 +23,37 @@ type ArchivedCamp = {
     name: string;
 }
 
-export default function ArchivedCampsScreen({ }: Props) {
+export default function ArchivedCampsScreen({ navigation }: Props) {
     const [loading, setLoading] = useState(true);
     const [archivedCamps, setArchivedCamps] = useState<ArchivedCamp[]>([]);
 
+    const fetchArchivedCamps = useCallback(async () => {
+        setLoading(true);
+        try {
+            const { data, error } = await supabase
+                .from('camps')
+                .select('id, name')
+                .eq('status', 'archived')
+                .order('name', { ascending: true });
+
+            if (error) {
+                throw error;
+            }
+  
+            setArchivedCamps(data || []);
+
+        } catch (error) {
+            console.error('Erro ao buscar acampamentos arquivados:', error);
+            Alert.alert('Erro', 'Não foi possível carregar a lista de arquivados.');
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
     useFocusEffect(
         useCallback(() => {
-            const fetchArchivedCamps = async () => {
-                setLoading(true);
-                try {
-                    const { data, error } = await supabase
-                        .from('camps')
-                        .select('id, name')
-                        .eq('status', 'archived')
-                        .order('name', { ascending: true });
-
-                    if (error) {
-                        throw error;
-                    }
-          
-                    setArchivedCamps(data || []);
-
-                } catch (error) {
-                    console.error('Erro ao buscar acampamentos arquivados:', error);
-                    Alert.alert('Erro', 'Não foi possível carregar a lista de arquivados.');
-                } finally {
-                    setLoading(false);
-                }
-            };
-
             fetchArchivedCamps();
-        }, [])
+        }, [fetchArchivedCamps])
     );
 
     const handleRestoreCamp = async (campId: number, campName: string) => {
@@ -86,33 +87,54 @@ export default function ArchivedCampsScreen({ }: Props) {
 
     const renderItem = ({ item }: { item: ArchivedCamp }) => (
         <View style={styles.itemContainer}>
-            <Text style={styles.itemText}>{item.name}</Text>
+            <Text style={styles.itemText} numberOfLines={1}>{item.name}</Text>
             <TouchableOpacity 
                 style={styles.actionButton}
                 onPress={() => handleRestoreCamp(item.id, item.name)}
             >
-                <Icon name="rotate-ccw" size={20} color="#007BFF" />
+                <Icon name="rotate-ccw" size={18} color={theme.colors.textPrimary} />
                 <Text style={styles.actionText}>Restaurar</Text>
             </TouchableOpacity>
         </View>
   );
 
+  if (loading) {
+    return (
+        <SafeAreaView style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={theme.colors.textPrimary} />
+        </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.safeArea}>
-      {loading ? (
-        <ActivityIndicator size="large" style={styles.loader} />
-      ) : (
-        <FlatList
-          data={archivedCamps}
-          renderItem={renderItem}
-          keyExtractor={(item) => item.id.toString()}
-          ListEmptyComponent={
-            <View style={styles.emptyContainer}>
-                <Text style={styles.emptyText}>Nenhum acampamento arquivado.</Text>
+        <View style={styles.container}>
+            <View style={styles.header}>
+                <View style={styles.headerTitleContainer}>
+                    <TouchableOpacity 
+                        style={styles.backButton} 
+                        onPress={() => navigation.goBack()}
+                    >
+                        <Icon name="chevron-left" size={30} color={theme.colors.textPrimary} />
+                    </TouchableOpacity>
+                    <Text style={styles.headerTitle} numberOfLines={1}>
+                        Acampamentos Arquivados
+                    </Text>
+                </View>
             </View>
-          }
-        />
-      )}
+            <FlatList
+                data={archivedCamps}
+                renderItem={renderItem}
+                keyExtractor={(item) => item.id.toString()}
+                contentContainerStyle={{ paddingHorizontal: '10%' }}
+                showsVerticalScrollIndicator={false}
+                ListEmptyComponent={
+                    <View style={styles.emptyContainer}>
+                        <Text style={styles.emptyText}>Nenhum acampamento arquivado.</Text>
+                    </View>
+                }
+            />
+        </View>
     </SafeAreaView>
   );
 } 
@@ -120,48 +142,71 @@ export default function ArchivedCampsScreen({ }: Props) {
 const styles = StyleSheet.create({
   safeArea: { 
     flex: 1, 
-    backgroundColor: '#f5f5f5' 
+    backgroundColor: theme.colors.background 
   },
-  loader: {
+  loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: theme.colors.background,
+  },
+  container: {
+    flex: 1,
+  },
+  header: {
+    width: '80%',
+    alignSelf: 'center',
+    marginVertical: theme.spacing.lg,
+  },
+  headerTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  backButton: {
+    zIndex: 1, 
+  },
+  headerTitle: {
+    ...theme.typography.header,
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    textAlign: 'center',
+    paddingHorizontal: 40, 
   },
   itemContainer: {
+    ...theme.cardStyle,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-    backgroundColor: '#fff',
+    padding: theme.spacing.md,
+    marginBottom: theme.spacing.sm,
   },
   itemText: {
-    fontSize: 16,
+    ...theme.typography.body,
     flex: 1,
+    marginRight: theme.spacing.sm,
   },
   actionButton: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 6,
     paddingHorizontal: 12,
-    borderRadius: 5,
-    backgroundColor: '#e7f3ff'
+    borderRadius: 8,
+    backgroundColor: theme.colors.background
   },
   actionText: {
+    ...theme.typography.body,
     fontSize: 14,
-    color: '#007BFF',
     marginLeft: 8,
     fontWeight: 'bold'
   },
   emptyContainer: {
     flex: 1,
-    marginTop: 50,
+    paddingTop: 50,
     alignItems: 'center',
     justifyContent: 'center'
   },
   emptyText: {
-    fontSize: 16,
-    color: 'gray',
+    ...theme.typography.body,
   },
 });

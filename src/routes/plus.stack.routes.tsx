@@ -9,6 +9,7 @@ import EditCampScreen from '../pages/Admin/Camps/EditCampScreen';
 import CampDetailScreen from '../pages/Admin/Camps/CampDetailScreen';
 import CreateEditCampPriceScreen from '../pages/Admin/Camps/CreateEditCampPriceScreen';
 import ArchivedCampsScreen from '../pages/Admin/Camps/ArchivedCampsScreen';
+import CancelledRegistrationsScreen from '../pages/Admin/Registrations/CancelledRegistrationsScreen';
 
 import PaymentMethodsScreen from '../pages/Admin/PaymentMethods/PaymentMethodsScreen';
 import CreatePaymentMethodScreen from '../pages/Admin/PaymentMethods/CreatePaymentMethodScreen';
@@ -32,6 +33,9 @@ import EditTreasurerScreen from '../pages/Admin/Treasurers/EditTreasurerScreen';
 
 import AuditTrailScreen from '../pages/Admin/AuditTrail/AuditTrailScreen'
 
+import SettingsScreen from '../pages/Admin/Settings/SettingsScreen';
+import ChangePasswordScreen from '../pages/Admin/Settings/ChangePasswordScreen';
+
 
 export type PlusStackParamList = {
     PlusMenu: undefined;
@@ -42,6 +46,7 @@ export type PlusStackParamList = {
     CampDetail: { campId: number, campName: string };
     CreateEditCampPriceScreen: { campId: number, priceId?: number };
     ArchivedCamps: undefined
+    CancelledRegistrationsScreen: { campId: number }
 
     PaymentMethodsList: undefined;
     CreatePaymentMethodScreen: undefined;
@@ -65,6 +70,8 @@ export type PlusStackParamList = {
 
     AuditTrail: undefined;
 
+    Settings: undefined;
+    ChangePassword: undefined;
 };
 
 const Stack = createStackNavigator<PlusStackParamList>();
@@ -85,7 +92,8 @@ function PlusStackRoutes() {
                 name="CampsList"
                 component={CampsScreen}
                 options={{ 
-                    title: "Acampamentos"
+                    title: "Acampamentos",
+                    headerShown: false
                 }}
             />
             <Stack.Screen
@@ -93,7 +101,8 @@ function PlusStackRoutes() {
                 component={CreateCampScreen}
                 options={{
                     title: "Criar Acampamento",
-                    presentation: 'modal'
+                    presentation: 'modal',
+                    headerShown: false
                 }}
             />
             <Stack.Screen
@@ -101,19 +110,25 @@ function PlusStackRoutes() {
                 component={EditCampScreen}
                 options={{
                     title: "Editar Acampamento",
-                    presentation: 'modal'
+                    presentation: 'modal',
+                    headerShown: false
                 }}
             />
             <Stack.Screen 
                 name="CampDetail"
                 component={CampDetailScreen}
+                options={{
+                    title: 'Detalhes do acampamento',
+                    headerShown: false
+                }}
             />
             <Stack.Screen 
                 name="CreateEditCampPriceScreen"
                 component={CreateEditCampPriceScreen}
                 options={{ 
                     title: "Adicionar/Editar Preço", 
-                    presentation: 'modal' 
+                    presentation: 'modal',
+                    headerShown: false
                 }}
             />
             <Stack.Screen 
@@ -121,6 +136,15 @@ function PlusStackRoutes() {
                 component={ArchivedCampsScreen}
                 options={{
                     title: "Lista de acampamentos arquivados",
+                    headerShown: false
+                }}
+            />
+            <Stack.Screen 
+                name="CancelledRegistrationsScreen"
+                component={CancelledRegistrationsScreen}
+                options={{
+                    title: "Inscrições Canceladas",
+                    headerShown: false
                 }}
             />
 
@@ -128,7 +152,8 @@ function PlusStackRoutes() {
                 name="PaymentMethodsList"
                 component={PaymentMethodsScreen}
                 options={{ 
-                    title: "Formas de Pagamento"
+                    title: "Formas de Pagamento",
+                    headerShown: false
                 }}
             />
             <Stack.Screen 
@@ -136,7 +161,8 @@ function PlusStackRoutes() {
                 component={CreatePaymentMethodScreen}
                 options={{
                     title: "Criar Forma de Pagamento",
-                    presentation: 'modal'
+                    presentation: 'modal',
+                    headerShown: false
                 }}
             />
             <Stack.Screen 
@@ -144,7 +170,8 @@ function PlusStackRoutes() {
                 component={EditPaymentMethodScreen}
                 options={{
                     title: "Editar Forma de Pagamento",
-                    presentation: 'modal'
+                    presentation: 'modal',
+                    headerShown: false
                 }}
             />
 
@@ -152,7 +179,8 @@ function PlusStackRoutes() {
                 name="RegistrationPackagesList"
                 component={RegistrationPackagesScreen}
                 options={{ 
-                    title: "Pacotes de Inscrição"
+                    title: "Pacotes de Inscrição",
+                    headerShown: false
                 }}
             />
             <Stack.Screen
@@ -160,7 +188,8 @@ function PlusStackRoutes() {
                 component={CreateRegistrationPackageScreen}
                 options={{
                     title: "Criar Pacote de Inscrição",
-                    presentation: 'modal'
+                    presentation: 'modal',
+                    headerShown: false
                 }}
             />
             <Stack.Screen
@@ -168,7 +197,8 @@ function PlusStackRoutes() {
                 component={EditRegistrationPackageScreen}
                 options={{
                     title: "Editar Pacote de Inscrição",
-                    presentation: 'modal'
+                    presentation: 'modal',
+                    headerShown: false
                 }}
             />
 
@@ -176,7 +206,8 @@ function PlusStackRoutes() {
                 name="CongregationsList"
                 component={CongregationsScreen}
                 options={{ 
-                    title: "Lista das congregações"
+                    title: "Lista das congregações",
+                    headerShown: false
                 }}
             />
             <Stack.Screen 
@@ -184,7 +215,8 @@ function PlusStackRoutes() {
                 component={CreateCongregationScreen}
                 options={{
                     title: "Criar Congregação",
-                    presentation: 'modal'
+                    presentation: 'modal',
+                    headerShown: false
                 }}
             />
             <Stack.Screen 
@@ -192,7 +224,8 @@ function PlusStackRoutes() {
                 component={EditCongregationScreen}
                 options={{
                     title: "Editar Congregação",
-                    presentation: 'modal'
+                    presentation: 'modal',
+                    headerShown: false
                 }}
             />
 
@@ -200,7 +233,8 @@ function PlusStackRoutes() {
                 name="ParticipantTiersList"
                 component={ParticipantTiersScreen}
                 options={{ 
-                    title: "Níveis de Participante"
+                    title: "Níveis de Participante",
+                    headerShown: false
                 }}
             />
             <Stack.Screen
@@ -208,7 +242,8 @@ function PlusStackRoutes() {
                 component={CreateParticipantTierScreen}
                 options={{
                     title: "Criar Nível de Participante",
-                    presentation: 'modal'
+                    presentation: 'modal',
+                    headerShown: false
                 }}
             />
             <Stack.Screen
@@ -216,7 +251,8 @@ function PlusStackRoutes() {
                 component={EditParticipantTierScreen}
                 options={{
                     title: "Editar Nível de Participante",
-                    presentation: 'modal'
+                    presentation: 'modal',
+                    headerShown: false
                 }}
             />
 
@@ -224,7 +260,8 @@ function PlusStackRoutes() {
                 name="TreasurersList"
                 component={TreasurersListScreen}
                 options={{ 
-                    title: "Lista de Tesoureiros"
+                    title: "Lista de Tesoureiros",
+                    headerShown: false
                 }}
             />
             <Stack.Screen
@@ -232,7 +269,8 @@ function PlusStackRoutes() {
                 component={CreateTreasurerScreen}
                 options={{
                     title: "Criar Novo Tesoureiro",
-                    presentation: 'modal'
+                    presentation: 'modal',
+                    headerShown: false
                 }}
             />
             <Stack.Screen
@@ -240,7 +278,8 @@ function PlusStackRoutes() {
                 component={EditTreasurerScreen}
                 options={{
                     title: "Editar Tesoureiro",
-                    presentation: 'modal'
+                    presentation: 'modal',
+                    headerShown: false
                 }}
             />
 
@@ -248,7 +287,25 @@ function PlusStackRoutes() {
                 name="AuditTrail"
                 component={AuditTrailScreen}
                 options={{ 
-                    title: "Trilha de Auditoria" 
+                    title: "Trilha de Auditoria",
+                    headerShown: false
+                }}
+            />
+
+            <Stack.Screen 
+                name="Settings"
+                component={SettingsScreen}
+                options={{ 
+                    title: "Configurações",
+                    headerShown: false
+                }}
+            />
+            <Stack.Screen 
+                name="ChangePassword"
+                component={ChangePasswordScreen}
+                options={{ 
+                    title: "Alterar Senha",
+                    headerShown: false
                 }}
             />
 

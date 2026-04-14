@@ -1,9 +1,10 @@
 import React from 'react';
-import { View, Text, Button, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, Button, TouchableOpacity, StyleSheet, ScrollView, Image } from 'react-native';
 import { useAuth } from '../../contexts/AuthContext';
 import { StackScreenProps } from '@react-navigation/stack';
 import { PlusStackParamList } from '../../routes/plus.stack.routes';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Logo from '../../../assets/logo.svg';
 
 import Icon from 'react-native-vector-icons/Feather';
 
@@ -18,6 +19,10 @@ type MenuItem = {
 export default function Plus({ navigation }: Props) {
     const { signOut, profile } = useAuth();
 
+    const LOGO_WIDTH = 250;
+    const LOGO_ASPECT_RATIO = 1.48
+    const LOGO_HEIGHT = LOGO_WIDTH / LOGO_ASPECT_RATIO;
+
     const menuItems: MenuItem[] = [
         {
             title: 'Acampamentos',
@@ -30,19 +35,19 @@ export default function Plus({ navigation }: Props) {
             route: 'PaymentMethodsList',
         },
         {
-            title: 'Pacotes de Inscrição',
-            icon: 'box',
-            route: 'RegistrationPackagesList',
-        },
-        {
             title: 'Congregações',
             icon: 'home',
             route: 'CongregationsList',
         },
         {
-            title: 'Níveis de Participante',
+            title: 'Tipos de Inscrição',
             icon: 'users',
             route: 'ParticipantTiersList',
+        },
+        {
+            title: 'Pacotes de Inscrição',
+            icon: 'box',
+            route: 'RegistrationPackagesList',
         },
         {
             title: 'Tesoureiros',
@@ -50,9 +55,14 @@ export default function Plus({ navigation }: Props) {
             route: 'TreasurersList'
         },
         {
-            title: 'Trilha de Auditoria de Pagamentos',
+            title: 'Auditoria de Pagamentos',
             icon: 'list',
             route: 'AuditTrail',
+        },
+        {
+            title: 'Configurações',
+            icon: 'settings',
+            route: 'Settings',
         },
     ];
 
@@ -62,12 +72,17 @@ export default function Plus({ navigation }: Props) {
 
     return (
         <SafeAreaView style={styles.container}>
-            <ScrollView>
-                <View style={styles.profileHeader}>
-                    <Text style={styles.profileName}>{profile?.name || 'Administrador'}</Text>
-                    <Text style={styles.profileEmail}>{profile?.email || ''}</Text>
-                </View>
+            <View style={styles.profileHeader}>
+                <Text style={styles.profileName}>{profile?.name || 'Administrador'}</Text>
+                <Text style={styles.profileEmail}>{profile?.email || ''}</Text>
+                <Logo 
+                    width={LOGO_WIDTH}
+                    height={LOGO_HEIGHT}
+                    color='#878175'
+                />
+            </View>
                 
+            <ScrollView>
                 <View style={styles.menuContainer}>
                     {menuItems.map((item) => (
                         <TouchableOpacity 
@@ -77,18 +92,14 @@ export default function Plus({ navigation }: Props) {
                         >
                             <Icon name={item.icon} size={22} color="#555" />
                             <Text style={styles.menuText}>{item.title}</Text>
-                            <Icon name="chevron-right" size={22} color="#ccc" />
+                            <Icon name="chevron-right" size={22} color="#878175" />
                         </TouchableOpacity>
                     ))}
                 </View>
 
-                <View style={styles.buttonContainer}>
-                    <Button 
-                        title="Sair (Logout)" 
-                        onPress={signOut} 
-                        color="#ff4757"
-                    />
-                </View>
+                <TouchableOpacity style={styles.buttonContainer} onPress={signOut}>
+                    <Text style={styles.buttonText}>Sair</Text>
+                </TouchableOpacity>
             </ScrollView>
         </SafeAreaView>
     )
@@ -97,47 +108,57 @@ export default function Plus({ navigation }: Props) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#f5f5f5',
+        backgroundColor: '#f6e9cf',
     },
     profileHeader: {
-        backgroundColor: '#fff',
+        backgroundColor: '#f6e9cf',
         padding: 24,
-        alignItems: 'center',
-        borderBottomWidth: 1,
-        borderBottomColor: '#eee',
+        alignItems: 'center'
     },
     profileName: {
         fontSize: 22,
         fontWeight: 'bold',
-        color: '#333',
+        color: '#878175',
     },
     profileEmail: {
         fontSize: 16,
-        color: 'gray',
+        fontWeight: 'bold',
+        color: '#878175',
         marginTop: 4,
+        marginBottom: 4
     },
     menuContainer: {
-        marginTop: 20,
+        marginTop: 0,
     },
     menuItem: {
+        width: '80%',
+        alignSelf: 'center',
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#fff',
+        backgroundColor: '#f6e9cf',
         paddingVertical: 16,
-        paddingHorizontal: 20,
-        borderTopWidth: 1,
         borderBottomWidth: 1,
-        borderColor: '#eee',
-        marginBottom: -1,
+        borderColor: '#878175',
     },
     menuText: {
         flex: 1,
         fontSize: 18,
         marginLeft: 20,
-        color: '#333',
+        color: '#333'
     },
     buttonContainer: {
-        padding: 20,
-        marginTop: 20,
+        alignSelf: 'center',
+        width: '80%',
+        borderRadius: 10,
+        backgroundColor: '#878175',
+        padding: 8,
+        marginTop: 25,
+        alignItems: 'center',
+        marginBottom: 25
+    },
+    buttonText: {
+        fontSize: 18,
+        color: '#f6e9cf'
+
     }
 });

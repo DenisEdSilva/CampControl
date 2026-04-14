@@ -19,6 +19,7 @@ function RegistrationStackRoutes() {
                 component={SelectCampScreen}
                 options={{ 
                     title: "Selecione o Acampamento",
+                    headerShown: false
                 }}
             />
             <Stack.Screen
@@ -26,6 +27,7 @@ function RegistrationStackRoutes() {
                 component={CreateRegistrationScreen}
                 options={{ 
                     title: "Nova Inscrição",
+                    headerShown: false
                 }}
             />
         </Stack.Navigator>

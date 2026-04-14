@@ -4,7 +4,7 @@ export async function logPaymentActivity(
     adminUserId: string,
     registrationId: number,
     paymentId: number | null,
-    action: 'CREATE' | 'UPDATE' | 'DELETE' | 'CANCELLED',
+    action: 'CREATE' | 'UPDATE' | 'DELETE' | 'CANCELLED' | 'RESTORED' | 'CHECK_IN' | 'CHECK_OUT',
     details: string    
 ) {
     const { error } = await supabase

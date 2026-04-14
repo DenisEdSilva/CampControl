@@ -1,6 +1,7 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Platform } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
+import { theme } from '../styles/theme';
 
 type PickerItem = {
     label: string;
@@ -19,7 +20,6 @@ type CustomPickerProps = {
 export default function CustomPicker({ label, items, selectedValue, onValueChange, enabled }: CustomPickerProps) {
     return (
         <View style={styles.container}>
-            <Text style={styles.label}>{label}</Text>
             <View style={styles.pickerContainer}>
                 <Picker
                     selectedValue={selectedValue}
@@ -27,7 +27,7 @@ export default function CustomPicker({ label, items, selectedValue, onValueChang
                     enabled={enabled}
                     style={styles.picker}
                 >
-                    <Picker.Item label="Selecione uma opção..." value={undefined} color="#999" />
+                    <Picker.Item label={label} value={undefined} color="#999" />
                     {items.map((item) => (
                         <Picker.Item key={item.value} label={item.label} value={item.value} />
                     ))}
@@ -39,23 +39,16 @@ export default function CustomPicker({ label, items, selectedValue, onValueChang
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 10,
-  },
-  label: {
-    fontSize: 16,
-    marginBottom: 8,
-    fontWeight: 'bold',
-    color: '#333',
+    marginBottom: theme.spacing.md,
   },
   pickerContainer: {
-    backgroundColor: '#fff',
-    borderColor: '#ccc',
-    borderWidth: 1,
-    borderRadius: 8,
+    ...theme.cardStyle,
+    height: 50,
     justifyContent: 'center',
+    paddingHorizontal: theme.spacing.sm,
   },
   picker: {
-    height: 50,
     width: '100%',
+    color: theme.colors.textPrimary,
   },
 });

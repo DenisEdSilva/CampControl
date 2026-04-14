@@ -7,6 +7,7 @@ import { supabase } from '../../lib/supabase';
 import { useFocusEffect } from '@react-navigation/native';
 import CustomPicker from '../../components/CustomPicker';
 import Icon from 'react-native-vector-icons/Feather';
+import { theme } from '../../styles/theme';
 
 type Props = StackScreenProps<HomeStackParamList, 'Dashboard'>;
 type Camp = { id: number; name: string; };
@@ -26,27 +27,22 @@ export default function Dashboard({ navigation }: Props) {
   const [selectedCampId, setSelectedCampId] = useState<number | undefined>();
   const [registrations, setRegistrations] = useState<Registration[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [filterStatus, setFilterStatus] = useState('Em andamento');
 
   useEffect(() => {
     async function fetchCamps() {
       const { data, error } = await supabase.from('camps').select('id, name').order('name');
       if (data) {
         setCamps(data);
+        if (data.length > 0 && !selectedCampId) {
+            setSelectedCampId(data[0].id);
+        }
       } else if (error) {
         console.error("Erro ao buscar acampamentos: ", error);
       }
     }
     fetchCamps();
   }, []);
-
-
-  useEffect(() => {
-      if (camps.length > 0) {
-        setSelectedCampId(prevId => {
-          return prevId ? prevId : camps[0].id;
-        });
-      }
-  }, [camps]);
 
   useFocusEffect(
     useCallback(() => {
@@ -55,11 +51,18 @@ export default function Dashboard({ navigation }: Props) {
       if (selectedCampId) {
         setLoading(true);
         async function fetchRegistrations() {
-          const { data, error } = await supabase
+          let query = supabase
             .from('registrations')
             .select('id, final_price, status, congregations(name), registration_packages(name), participant_tiers(name), participants(name)')
-            .eq('camp_id', selectedCampId)
-            .order('created_at', { ascending: false });
+            .eq('camp_id', selectedCampId);
+
+          if (filterStatus === 'Cancelado') {
+            query = query.eq('status', 'Cancelado');
+          } else {
+            query = query.in('status', ['Em andamento', 'Concluido', 'Presença Confirmada']);
+          }
+          
+          const { data, error } = await query.order('created_at', { ascending: false });
           
           if (isMounted) {
             if (data) {
@@ -74,7 +77,7 @@ export default function Dashboard({ navigation }: Props) {
           }
         }
         fetchRegistrations();
-      } else if (camps.length === 0) {
+      } else {
         setRegistrations([]);
         setLoading(false);
       }
@@ -82,7 +85,7 @@ export default function Dashboard({ navigation }: Props) {
       return () => {
         isMounted = false;
       };
-    }, [selectedCampId, camps.length])
+    }, [selectedCampId, filterStatus])
   );
 
   const filteredRegistrations = useMemo(() => {
@@ -109,20 +112,22 @@ export default function Dashboard({ navigation }: Props) {
         <Text style={styles.itemText}>{item.participants?.name}</Text>
         <View style={styles.itemSubRow}>
           <Text style={styles.itemSubText}>{item.congregations?.name}</Text>
-          <Text style={styles.itemSubText}>{item.registration_packages?.name}</Text>
+          <Text style={styles.itemSubText}>{item.registration_packages?.name} • {item.participant_tiers?.name}</Text>
         </View>
-        <Text style={styles.itemSubText}>{item.participant_tiers?.name}</Text>
-        <Text style={[styles.itemStatus, { color: item.status === 'cancelled' ? 'red' : 'green' }]}>
-          Status: {item.status}
+        <Text style={[styles.itemStatus, { color: item.status === 'Cancelado' ? theme.colors.accent : '#16a34a' }]}>
+          {item.status}
         </Text>
       </View>
-      <Icon name="chevron-right" size={24} color="#ccc" />
+      <Icon name="chevron-right" size={24} color={theme.colors.textSecondary} />
     </TouchableOpacity>
   ), [navigation]);
 
   return (
     <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
         <View style={styles.header}>
+          <Text style={styles.headerTitle}>Inscrições</Text>
+
           <CustomPicker 
             label="Selecione um Acampamento"
             selectedValue={selectedCampId}
@@ -130,29 +135,49 @@ export default function Dashboard({ navigation }: Props) {
             items={campItems}
           />
           <View style={styles.searchContainer}>
-            <Icon name="search" size={20} color="#999" style={styles.searchIcon} />
+            <Icon name="search" size={20} color={theme.colors.textSecondary} style={styles.searchIcon} />
             <TextInput
               style={styles.searchInput}
-              placeholder="Buscar participante por nome..."
+              placeholder="Buscar por nome..."
               value={searchQuery}
               onChangeText={setSearchQuery}
               editable={!!selectedCampId}
             />
           </View>
+           <View style={styles.filterToggle}>
+                <TouchableOpacity 
+                    style={[styles.toggleButton, filterStatus === 'Em andamento' && styles.toggleButtonActive]}
+                    onPress={() => setFilterStatus('Em andamento')}
+                >
+                    <Text style={[styles.toggleText, filterStatus === 'Em andamento' && styles.toggleTextActive]}>Ativas</Text>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                    style={[styles.toggleButton, filterStatus === 'Cancelado' && styles.toggleButtonActive]}
+                    onPress={() => setFilterStatus('Cancelado')}
+                >
+                    <Text style={[styles.toggleText, filterStatus === 'Cancelado' && styles.toggleTextActive]}>Canceladas</Text>
+                </TouchableOpacity>
+            </View>
         </View>
 
         {loading ? (
-          <ActivityIndicator size="large" style={styles.loader} />
+          <ActivityIndicator size="large" color={theme.colors.textPrimary} style={styles.loader} />
         ) : (
           <FlatList 
             data={filteredRegistrations}
             renderItem={renderItem}
             keyExtractor={item => item.id.toString()}
+            contentContainerStyle={styles.listContentContainer}
             ListEmptyComponent={
-              <Text style={styles.emptyText}>{camps.length > 0 ? 'Nenhuma inscrição encontrada.' : 'Nenhum acampamento cadastrado.'}</Text>
+              <View style={styles.emptyContainer}>
+                <Text style={styles.emptyText}>
+                  {camps.length > 0 ? 'Nenhuma inscrição encontrada.' : 'Nenhum acampamento cadastrado.'}
+                </Text>
+              </View>
             }
           />
         )} 
+      </View>
     </SafeAreaView>
   );
 }
@@ -160,72 +185,108 @@ export default function Dashboard({ navigation }: Props) {
 const styles = StyleSheet.create({
   safeArea: { 
     flex: 1, 
-    backgroundColor: '#fff' 
+    backgroundColor: theme.colors.background,
+  },
+  container: {
+    flex: 1,
+    width: '90%',
+    alignSelf: 'center',
   },
   header: { 
-    padding: 16, 
-    backgroundColor: '#fff', 
-    borderBottomWidth: 1, 
-    borderBottomColor: '#eee' 
+    paddingTop: theme.spacing.lg,
+    marginBottom: theme.spacing.md,
+  },
+  headerTitle: {
+    ...theme.typography.header,
+    marginBottom: theme.spacing.lg,
+    textAlign: 'center',
   },
   searchContainer: { 
+    ...theme.cardStyle,
     flexDirection: 'row', 
     alignItems: 'center', 
-    backgroundColor: '#f0f0f0', 
-    borderRadius: 8,
-    marginTop: 10 
+    height: 50,
+    marginTop: theme.spacing.md,
   },
   searchIcon: { 
-    padding: 10 
+    marginLeft: theme.spacing.md,
   },
   searchInput: { 
     flex: 1, 
-    height: 40, 
-    paddingRight: 10, 
-    backgroundColor: 'transparent' 
+    height: '100%', 
+    paddingLeft: theme.spacing.md,
+    ...theme.typography.body,
+  },
+  filterToggle: {
+    flexDirection: 'row',
+    backgroundColor: theme.colors.card,
+    borderRadius: 8,
+    marginTop: theme.spacing.md,
+  },
+  toggleButton: {
+    flex: 1,
+    padding: 10,
+    alignItems: 'center',
+    borderRadius: 8,
+  },
+  toggleButtonActive: {
+    backgroundColor: theme.colors.textPrimary,
+  },
+  toggleText: {
+    ...theme.typography.body,
+    fontWeight: 'bold',
+    color: theme.colors.textSecondary,
+  },
+  toggleTextActive: {
+    color: theme.colors.textOnPrimary,
   },
   loader: { 
     flex: 1, 
     justifyContent: 'center', 
     alignItems: 'center', 
-    backgroundColor: '#f5f5f5' 
   },
-  itemContainer: { 
-    flexDirection: 'row', 
-    justifyContent: 'space-between', 
-    alignItems: 'center', 
-    padding: 16, 
-    borderBottomWidth: 1, 
-    borderBottomColor: '#eee', 
-    backgroundColor: '#fff' 
+  itemContainer: {
+    ...theme.cardStyle,
+    padding: theme.spacing.md,
+    marginBottom: theme.spacing.sm,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  listContentContainer: {
+    paddingBottom: theme.spacing.md,
+  },
+  emptyContainer: {
+    paddingTop: 48,
+    alignItems: 'center',
   },
   itemDetails: { 
-    flex: 1 
+    flex: 1,
+    marginRight: theme.spacing.sm,
   },
   itemSubRow: { 
     flexDirection: 'row', 
     alignItems: 'center', 
     flexWrap: 'wrap' 
   },
-  itemText: { 
-    fontSize: 16, 
-    fontWeight: 'bold', 
-    marginBottom: 4 
+  itemText: {
+    ...theme.typography.body,
+    fontWeight: 'bold',
+    marginBottom: theme.spacing.xs,
   },
-  itemSubText: { 
-    fontSize: 14, 
-    color: 'gray', 
-    marginRight: 10 
+  itemSubText: {
+    ...theme.typography.body,
+    fontSize: 14,
+    color: theme.colors.textSecondary,
+    marginRight: theme.spacing.sm,
   },
   itemStatus: { 
     fontSize: 14, 
     marginTop: 4, 
-    fontWeight: '500' 
+    fontWeight: 'bold' 
   },
   emptyText: { 
-    textAlign: 'center',
-    marginTop: 50, 
-    fontSize: 16, 
-    color: 'gray' 
+    ...theme.typography.body,
+    textAlign: 'center'
   },
 });
