@@ -12,7 +12,8 @@
       "backgroundColor": "#f6e9cf"
     },
     "platforms": [
-      "android"
+      "android",
+      "web"
     ],
     "android": {
       "adaptiveIcon": {
