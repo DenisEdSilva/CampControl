@@ -10,4 +10,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Hit Heartbeat Table
-        run: curl -i -X POST "https://dagodyvkqkdsknzuzbtj.supabase.co/rest/v1/heartbeat" -H "apikey:${{ secrets.SUPABASE_ANON_KEY }}" -H "Authorization:Bearer ${{ secrets.SUPABASE_ANON_KEY }}" -H "Content-Type:application/json" -d '{}'
+        env:
+          SUPABASE_TOKEN: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: 'curl -i -X POST "https://supabase.co" -H "apikey: $SUPABASE_TOKEN" -H "Authorization: Bearer $SUPABASE_TOKEN" -H "Content-Type: application/json" -d ''{}'''
