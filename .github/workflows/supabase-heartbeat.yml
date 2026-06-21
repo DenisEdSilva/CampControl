@@ -15,3 +15,5 @@ jobs:
           curl -X GET "https://dagodyvkqkdsknzuzbtj.supabase.co/rest/v1/heartbeat?select=*" \
           -H "apikey: ${{ secrets.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRhZ29keXZrcWtkc2tuenV6YnRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg4NDI0MzUsImV4cCI6MjA3NDQxODQzNX0.mwlQ9UHkOgP_vwQFJRHfy-RTuW7dKmB8cGJaEF2yfQ4 }}" \
           -H "Authorization: Bearer ${{ secrets.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRhZ29keXZrcWtkc2tuenV6YnRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg4NDI0MzUsImV4cCI6MjA3NDQxODQzNX0.mwlQ9UHkOgP_vwQFJRHfy-RTuW7dKmB8cGJaEF2yfQ4 }}"
+          -H "Content-Type: application/json" \
+          -d '{}'
