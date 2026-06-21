@@ -11,7 +11,7 @@ jobs:
     steps:
       - name: Hit Heartbeat Table
         run: |
-          curl -f -i -X POST "https://supabase.co" \
+          curl -f -i -X POST "https://dagodyvkqkdsknzuzbtj.supabase.co/rest/v1/heartbeat?select=*" \
           -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
           -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}" \
           -H "Content-Type: application/json" \
